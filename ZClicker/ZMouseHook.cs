@@ -45,67 +45,67 @@ namespace ZClicker
 		[ DllImport( "user32.dll", CharSet = CharSet.Auto,
 			CallingConvention = CallingConvention.StdCall, SetLastError = true ) ]
 		private static extern int SetWindowsHookEx(
-			int idHook,
+			int id_hook,
 			HookProc lpfn,
-			IntPtr hMod,
-			int dwThreadId );
+			IntPtr h_mod,
+			int dw_thread_id );
 
 		[ DllImport( "user32.dll", CharSet = CharSet.Auto,
 			CallingConvention = CallingConvention.StdCall, SetLastError = true ) ]
-		private static extern int UnhookWindowsHookEx( int idHook );
+		private static extern int UnhookWindowsHookEx( int id_hook );
 
 		[ DllImport( "user32.dll", CharSet = CharSet.Auto,
 			CallingConvention = CallingConvention.StdCall ) ]
 		private static extern int CallNextHookEx(
-			int idHook,
-			int nCode,
-			int wParam,
-			IntPtr lParam );
+			int id_hook,
+			int n_code,
+			int w_param,
+			IntPtr l_param );
 
-		private delegate int HookProc( int nCode, int wParam, IntPtr lParam );
+		private delegate int HookProc( int n_code, int w_param, IntPtr l_param );
 
 		#endregion
 
 		#region [ WIN CONTS ]
 
 		// Windows NT/2000/XP: Installs a hook procedure that monitors low-level mouse input events.
-		private const int WH_MOUSE_LL = 14;
+		private const int _WH_MOUSE_LL = 14;
 
 		// Installs a hook procedure that monitors mouse messages. For more information, see the MouseProc hook procedure. 
-		private const int WH_MOUSE = 7;
+		private const int _WH_MOUSE = 7;
 
 		// The WM_MOUSEMOVE message is posted to a window when the cursor moves. 
-		private const int WM_MOUSEMOVE = 0x200;
+		private const int _WM_MOUSEMOVE = 0x200;
 
 		// The WM_LBUTTONDOWN message is posted when the user presses the left mouse button 
-		private const int WM_LBUTTONDOWN = 0x201;
+		private const int _WM_LBUTTONDOWN = 0x201;
 
 		// The WM_RBUTTONDOWN message is posted when the user presses the right mouse button
-		private const int WM_RBUTTONDOWN = 0x204;
+		private const int _WM_RBUTTONDOWN = 0x204;
 
 		// The WM_MBUTTONDOWN message is posted when the user presses the middle mouse button 
-		private const int WM_MBUTTONDOWN = 0x207;
+		private const int _WM_MBUTTONDOWN = 0x207;
 
 		// The WM_LBUTTONUP message is posted when the user releases the left mouse button 
-		private const int WM_LBUTTONUP = 0x202;
+		private const int _WM_LBUTTONUP = 0x202;
 
 		// The WM_RBUTTONUP message is posted when the user releases the right mouse button 
-		private const int WM_RBUTTONUP = 0x205;
+		private const int _WM_RBUTTONUP = 0x205;
 
 		// The WM_MBUTTONUP message is posted when the user releases the middle mouse button 
-		private const int WM_MBUTTONUP = 0x208;
+		private const int _WM_MBUTTONUP = 0x208;
 
 		// The WM_LBUTTONDBLCLK message is posted when the user double-clicks the left mouse button 
-		private const int WM_LBUTTONDBLCLK = 0x203;
+		private const int _WM_LBUTTONDBLCLK = 0x203;
 
 		// The WM_RBUTTONDBLCLK message is posted when the user double-clicks the right mouse button 
-		private const int WM_RBUTTONDBLCLK = 0x206;
+		private const int _WM_RBUTTONDBLCLK = 0x206;
 
 		// The WM_RBUTTONDOWN message is posted when the user presses the right mouse button 
-		private const int WM_MBUTTONDBLCLK = 0x209;
+		private const int _WM_MBUTTONDBLCLK = 0x209;
 
 		// The WM_MOUSEWHEEL message is posted when the user presses the mouse wheel. 
-		private const int WM_MOUSEWHEEL = 0x020A;
+		private const int _WM_MOUSEWHEEL = 0x020A;
 
 		#endregion
 
@@ -145,7 +145,7 @@ namespace ZClicker
 				_MouseHookProcedure = mouseHookProc;
 
 				_h_mouse_hook = SetWindowsHookEx(
-					WH_MOUSE_LL,
+					_WH_MOUSE_LL,
 					_MouseHookProcedure,
 					Marshal.GetHINSTANCE(
 						Assembly.GetExecutingAssembly().GetModules()[ 0 ] ),
@@ -177,24 +177,24 @@ namespace ZClicker
 		{
 			if ( ( code >= 0 ) && ( OnMouseActivity != null ) )
 			{
-				var mouseHookStruct = ( MouseLLHookStruct ) Marshal.PtrToStructure( param, typeof( MouseLLHookStruct ) );
+				var mouse_hook_struct = ( MouseLLHookStruct ) Marshal.PtrToStructure( param, typeof( MouseLLHookStruct ) );
 
 				var button = MouseButtons.None;
 				short mouse_delta = 0;
 
 				switch ( button_param )
 				{
-					case WM_LBUTTONDOWN:
+					case _WM_LBUTTONDOWN:
 
 						button = MouseButtons.Left;
 						break;
-					case WM_RBUTTONDOWN:
+					case _WM_RBUTTONDOWN:
 
 						button = MouseButtons.Right;
 						break;
-					case WM_MOUSEWHEEL:
+					case _WM_MOUSEWHEEL:
 
-						mouse_delta = ( short ) ( ( mouseHookStruct._data >> 16 ) & 0xffff );
+						mouse_delta = ( short ) ( ( mouse_hook_struct._data >> 16 ) & 0xffff );
 						break;
 
 					default:
@@ -203,13 +203,13 @@ namespace ZClicker
 
 				var click_count = 0;
 				if ( button != MouseButtons.None )
-					click_count = ( ( button_param == WM_LBUTTONDBLCLK || button_param == WM_RBUTTONDBLCLK ) ? 2 : 1 );
+					click_count = ( ( button_param == _WM_LBUTTONDBLCLK || button_param == _WM_RBUTTONDBLCLK ) ? 2 : 1 );
 
 				var e = new MouseEventArgs(
 					button,
 					click_count,
-					mouseHookStruct._point._x,
-					mouseHookStruct._point._y,
+					mouse_hook_struct._point._x,
+					mouse_hook_struct._point._y,
 					mouse_delta );
 
 				OnMouseActivity( this, e );
