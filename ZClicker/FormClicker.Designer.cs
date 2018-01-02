@@ -39,7 +39,7 @@
 			this.button_record.Font = new System.Drawing.Font("Dina ttf 10px", 19.69811F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.button_record.Location = new System.Drawing.Point(0, 0);
 			this.button_record.Name = "button_record";
-			this.button_record.Size = new System.Drawing.Size(193, 40);
+			this.button_record.Size = new System.Drawing.Size(255, 40);
 			this.button_record.TabIndex = 0;
 			this.button_record.Text = "Record";
 			this.button_record.UseVisualStyleBackColor = true;
@@ -51,7 +51,7 @@
 			this.button_stop.Font = new System.Drawing.Font("Dina ttf 10px", 19.69811F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.button_stop.Location = new System.Drawing.Point(0, 40);
 			this.button_stop.Name = "button_stop";
-			this.button_stop.Size = new System.Drawing.Size(193, 42);
+			this.button_stop.Size = new System.Drawing.Size(255, 42);
 			this.button_stop.TabIndex = 1;
 			this.button_stop.Text = "Stop";
 			this.button_stop.UseVisualStyleBackColor = true;
@@ -63,7 +63,7 @@
 			this.button_run.Font = new System.Drawing.Font("Dina ttf 10px", 19.69811F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.button_run.Location = new System.Drawing.Point(0, 82);
 			this.button_run.Name = "button_run";
-			this.button_run.Size = new System.Drawing.Size(193, 40);
+			this.button_run.Size = new System.Drawing.Size(255, 40);
 			this.button_run.TabIndex = 2;
 			this.button_run.Text = "Run";
 			this.button_run.UseVisualStyleBackColor = true;
@@ -72,7 +72,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(193, 123);
+			this.ClientSize = new System.Drawing.Size(255, 123);
 			this.Controls.Add(this.button_run);
 			this.Controls.Add(this.button_stop);
 			this.Controls.Add(this.button_record);

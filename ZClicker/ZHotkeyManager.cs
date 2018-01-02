@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace ZClicker
 {
-	class ZHotkeyManager
+	public static class ZHotkeyManager
 	{
 		#region [ WIN-LIB IMPORTS ]
 
@@ -19,10 +19,10 @@ namespace ZClicker
 		#region [ WIN CONSTS ]
 
 		public const int _WM_HOTKEY = 0x0312,
-			KMOD_ALT = 1,
-			KMOD_CTRL = 2,
-			KMOD_SHIFT = 4,
-			KMOD_WIN = 8;
+			KMOD_ALT = 1 << 0,
+			KMOD_CTRL = 1 << 1,
+			KMOD_SHIFT = 1 << 2,
+			KMOD_WIN = 1 << 3;
 
 		#endregion
 

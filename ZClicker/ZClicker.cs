@@ -5,18 +5,16 @@ using System.Windows.Forms;
 
 namespace ZClicker
 {
+	public enum ZMOUSE_STATE
+	{
+		UP = -1,
+		NONE = 0,
+		DOWN = 1
+	}
+
 	public static class ZClicker
 	{
-		private const int _MOUSE_LEFT_DOWN = 0x0002;
-		private const int _MOUSE_LEFT_UP = 0x0004;
-		private const int _MOUSE_RIGHT_DOWN = 0x0008;
-		private const int _MOUSE_RIGHT_UP = 0x0010;
-
-		[ DllImport( "user32.dll" ) ]
-		private static extern bool ClientToScreen( IntPtr hWnd, ref Point lpPoint );
-
-		[ DllImport( "user32.dll" ) ]
-		private static extern uint SendInput( uint nInputs, [ MarshalAs( UnmanagedType.LPArray ), In ] INPUT[] pInputs, int cbSize );
+		#region [ WIN STRUCTURES ]
 
 #pragma warning disable 649
 		private struct INPUT
@@ -43,10 +41,32 @@ namespace ZClicker
 
 #pragma warning restore 649
 
-		// TODO: pass which button to press
-		public static void clickHere( Point click_location )
+		#endregion
+
+		#region [ WIN-LIB IMPORTS ]
+
+		[ DllImport( "user32.dll" ) ]
+		private static extern bool ClientToScreen( IntPtr hWnd, ref Point lpPoint );
+
+		[ DllImport( "user32.dll" ) ]
+		private static extern uint SendInput( uint nInputs, [ MarshalAs( UnmanagedType.LPArray ), In ] INPUT[] pInputs, int cbSize );
+
+		#endregion
+
+		#region [ WIN CONSTS ]
+
+		private const int
+			_MOUSE_LEFT_DOWN = 0x0002,
+			_MOUSE_LEFT_UP = 0x0004,
+			_MOUSE_RIGHT_DOWN = 0x0008,
+			_MOUSE_RIGHT_UP = 0x0010;
+
+		#endregion
+
+		// TODO: pass mouse button and its state
+		public static void clickAtLocation( Point location, MouseButtons button )
 		{
-			Cursor.Position = click_location;
+			Cursor.Position = location;
 
 			var input_mouse_down = new INPUT { _type = 0 };
 			input_mouse_down._data._mouse._flags = _MOUSE_LEFT_DOWN;

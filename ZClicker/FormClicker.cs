@@ -28,6 +28,8 @@ namespace ZClicker
 			{
 				if ( args.Clicks > 0 )
 					_clicked_points.Add( args.Location );
+
+				Console.WriteLine( $@"Button = {args.Button} | State = {(ZMOUSE_STATE) args.Clicks} | Location = [ {args.X}, {args.Y} ]" );
 			};
 
 			button_record.Click += ( sender, args ) =>
@@ -46,8 +48,8 @@ namespace ZClicker
 				button_record.Enabled = button_run.Enabled = true;
 				button_stop.Enabled = false;
 
-				for ( int i = 0, end = _clicked_points.Count; i < end; ++i )
-					Console.WriteLine( $@"#{i} @ x = {_clicked_points[ i ].X} |  y = {_clicked_points[ i ].Y}" );
+//				for ( int i = 0, end = _clicked_points.Count; i < end; ++i )
+//					Console.WriteLine( $@"#{i} @ x = {_clicked_points[ i ].X} |  y = {_clicked_points[ i ].Y}" );
 			};
 
 			button_run.Click += ( sender, args ) =>

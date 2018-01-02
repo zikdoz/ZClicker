@@ -180,6 +180,7 @@ namespace ZClicker
 				var mouse_hook_struct = ( MouseLLHookStruct ) Marshal.PtrToStructure( param, typeof( MouseLLHookStruct ) );
 
 				var button = MouseButtons.None;
+				var button_state = ( int ) ZMOUSE_STATE.NONE;
 				short mouse_delta = 0;
 
 				switch ( button_param )
@@ -187,11 +188,27 @@ namespace ZClicker
 					case _WM_LBUTTONDOWN:
 
 						button = MouseButtons.Left;
+						button_state = ( int ) ZMOUSE_STATE.DOWN;
 						break;
+
 					case _WM_RBUTTONDOWN:
 
 						button = MouseButtons.Right;
+						button_state = ( int ) ZMOUSE_STATE.DOWN;
 						break;
+
+					case _WM_LBUTTONUP:
+
+						button = MouseButtons.Left;
+						button_state = ( int ) ZMOUSE_STATE.UP;
+						break;
+
+					case _WM_RBUTTONUP:
+
+						button = MouseButtons.Right;
+						button_state = ( int ) ZMOUSE_STATE.UP;
+						break;
+
 					case _WM_MOUSEWHEEL:
 
 						mouse_delta = ( short ) ( ( mouse_hook_struct._data >> 16 ) & 0xffff );
@@ -201,13 +218,9 @@ namespace ZClicker
 						break;
 				}
 
-				var click_count = 0;
-				if ( button != MouseButtons.None )
-					click_count = ( ( button_param == _WM_LBUTTONDBLCLK || button_param == _WM_RBUTTONDBLCLK ) ? 2 : 1 );
-
 				var e = new MouseEventArgs(
 					button,
-					click_count,
+					button_state,
 					mouse_hook_struct._point._x,
 					mouse_hook_struct._point._y,
 					mouse_delta );
