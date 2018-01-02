@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ZClicker
@@ -11,12 +9,20 @@ namespace ZClicker
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
-		[STAThread]
+		[ STAThread ]
 		static void Main()
 		{
 			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form1());
+			Application.SetCompatibleTextRenderingDefault( false );
+
+			var thread = new Thread( () => runForm( new form_clicker() ) );
+			thread.TrySetApartmentState( ApartmentState.STA );
+			thread.Start();
+
+			Application.Run( new form_main() );
 		}
+
+		private static void runForm( Form form_obj ) =>
+			Application.Run( form_obj );
 	}
 }
