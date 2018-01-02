@@ -22,12 +22,23 @@ namespace ZClicker
 			button_clear.Click += ( sender, args ) => { Invalidate(); };
 		}
 
-		private void form_main_MouseClick( object sender, MouseEventArgs e ) =>
-			CreateGraphics().DrawRectangle(
-				new Pen( Color.FromArgb(
+		private void form_main_MouseClick( object sender, MouseEventArgs e )
+		{
+			if ( e.Button == MouseButtons.Left )
+				CreateGraphics().DrawRectangle(
+					new Pen( Color.FromArgb(
+							_rng.Next( 256 ),
+							_rng.Next( 256 ),
+							_rng.Next( 256 ) ),
+						10f ), e.X, e.Y, 1, 1 );
+			else if ( e.Button == MouseButtons.Right )
+			{
+				CreateGraphics().FillRectangle(
+					new SolidBrush( Color.FromArgb(
 						_rng.Next( 256 ),
 						_rng.Next( 256 ),
-						_rng.Next( 256 ) ),
-					5f ), e.X, e.Y, 1, 1 );
+						_rng.Next( 256 ) ) ), e.X, e.Y, 10, 10 );
+			}
+		}
 	}
 }

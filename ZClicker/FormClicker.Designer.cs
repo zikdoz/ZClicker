@@ -31,6 +31,7 @@
 			this.button_record = new System.Windows.Forms.Button();
 			this.button_stop = new System.Windows.Forms.Button();
 			this.button_run = new System.Windows.Forms.Button();
+			this.background_worker = new System.ComponentModel.BackgroundWorker();
 			this.SuspendLayout();
 			// 
 			// button_record
@@ -68,6 +69,10 @@
 			this.button_run.Text = "Run";
 			this.button_run.UseVisualStyleBackColor = true;
 			// 
+			// background_worker
+			// 
+			this.background_worker.WorkerSupportsCancellation = true;
+			// 
 			// form_clicker
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -87,5 +92,6 @@
 		private System.Windows.Forms.Button button_record;
 		private System.Windows.Forms.Button button_stop;
 		private System.Windows.Forms.Button button_run;
+		private System.ComponentModel.BackgroundWorker background_worker;
 	}
 }

@@ -12,6 +12,22 @@ namespace ZClicker
 		DOWN = 1
 	}
 
+	public struct ZMOUSE_DATA
+	{
+		//TODO: add delta_time: time since last mouse
+		public MouseButtons _button;
+
+		public ZMOUSE_STATE _state;
+		public Point _location;
+
+		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location )
+		{
+			_button = button;
+			_state = state;
+			_location = location;
+		}
+	}
+
 	public static class ZClicker
 	{
 		#region [ WIN STRUCTURES ]
@@ -56,26 +72,24 @@ namespace ZClicker
 		#region [ WIN CONSTS ]
 
 		private const int
-			_MOUSE_LEFT_DOWN = 0x0002,
-			_MOUSE_LEFT_UP = 0x0004,
-			_MOUSE_RIGHT_DOWN = 0x0008,
-			_MOUSE_RIGHT_UP = 0x0010;
+			_MOUSE_LEFT_DOWN = 1 << 1,
+			_MOUSE_LEFT_UP = 1 << 2,
+			_MOUSE_RIGHT_DOWN = 1 << 3,
+			_MOUSE_RIGHT_UP = 1 << 4;
 
 		#endregion
 
-		// TODO: pass mouse button and its state
-		public static void clickAtLocation( Point location, MouseButtons button )
+		public static void useMouse( ZMOUSE_DATA data )
 		{
-			Cursor.Position = location;
+			Cursor.Position = data._location;
 
-			var input_mouse_down = new INPUT { _type = 0 };
-			input_mouse_down._data._mouse._flags = _MOUSE_LEFT_DOWN;
-
-			var input_mouse_up = new INPUT { _type = 0 };
-			input_mouse_up._data._mouse._flags = _MOUSE_LEFT_UP;
-
-			var inputs = new[] { input_mouse_down, input_mouse_up };
-			SendInput( ( uint ) inputs.Length, inputs, Marshal.SizeOf( typeof( INPUT ) ) );
+			if ( data._state != ZMOUSE_STATE.NONE )
+			{
+				var mouse_input = new INPUT { _type = 0 };
+				mouse_input._data._mouse._flags = ( uint ) ( ( ( data._button == MouseButtons.Left ) ? _MOUSE_LEFT_DOWN : _MOUSE_RIGHT_DOWN ) << ( ( data._state == ZMOUSE_STATE.UP ) ? 1 : 0 ) );
+				
+				SendInput( 1, new[] { mouse_input }, Marshal.SizeOf( typeof( INPUT ) ) );
+			}
 		}
 	}
 }

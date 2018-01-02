@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ZClicker
@@ -8,7 +9,7 @@ namespace ZClicker
 	public partial class form_clicker : Form
 	{
 		private ZMouseHook _mouse_activity_hook;
-		private List< Point > _clicked_points;
+		private List< ZMOUSE_DATA > _zmouse_data;
 
 		public form_clicker()
 		{
@@ -26,15 +27,28 @@ namespace ZClicker
 			_mouse_activity_hook = new ZMouseHook( false );
 			_mouse_activity_hook.OnMouseActivity += ( sender, args ) =>
 			{
-				if ( args.Clicks > 0 )
-					_clicked_points.Add( args.Location );
+				if ( args.Clicks != 0 )
+					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location ) );
 
-				Console.WriteLine( $@"Button = {args.Button} | State = {(ZMOUSE_STATE) args.Clicks} | Location = [ {args.X}, {args.Y} ]" );
+				Console.WriteLine( $@"Button = {args.Button} | State = {( ZMOUSE_STATE ) args.Clicks} | Location = [ {args.X}, {args.Y} ]" );
 			};
+
+			background_worker.DoWork += ( sender, args ) =>
+			{
+				foreach ( var data in _zmouse_data )
+				{
+					if ( !( args.Cancel = background_worker.CancellationPending ) )
+					{
+						ZClicker.useMouse( data );
+						Thread.Sleep( 5 );
+					}
+				}
+			};
+			background_worker.RunWorkerCompleted += ( sender, args ) => { button_run.Enabled = true; };
 
 			button_record.Click += ( sender, args ) =>
 			{
-				_clicked_points = new List< Point >();
+				_zmouse_data = new List< ZMOUSE_DATA >();
 				_mouse_activity_hook.start();
 
 				button_stop.Enabled = true;
@@ -47,15 +61,13 @@ namespace ZClicker
 
 				button_record.Enabled = button_run.Enabled = true;
 				button_stop.Enabled = false;
-
-//				for ( int i = 0, end = _clicked_points.Count; i < end; ++i )
-//					Console.WriteLine( $@"#{i} @ x = {_clicked_points[ i ].X} |  y = {_clicked_points[ i ].Y}" );
 			};
 
 			button_run.Click += ( sender, args ) =>
 			{
-//				foreach ( var point in _clicked_points )
-//					ZClicker.clickHere( point );
+				background_worker.RunWorkerAsync();
+
+				button_run.Enabled = false;
 			};
 		}
 
@@ -72,7 +84,14 @@ namespace ZClicker
 
 					case ZHotkeyManager._ZRECORD_STOP:
 
-						button_stop.PerformClick();
+						if ( background_worker.IsBusy )
+						{
+							background_worker.CancelAsync();
+
+							Environment.Exit( 0 );
+						}
+						else
+							button_stop.PerformClick();
 						break;
 
 					case ZHotkeyManager._ZRECORD_RUN:
