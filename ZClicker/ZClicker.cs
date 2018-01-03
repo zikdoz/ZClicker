@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -76,19 +77,19 @@ namespace ZClicker
 		private struct INPUT
 		{
 			public uint _type;
-			public MOUSEKEYBDHARDWAREINPUT _data;
+			public MOUSE_HARDWARE_INPUT _data;
 		}
 
 		[ StructLayout( LayoutKind.Explicit ) ]
-		private struct MOUSEKEYBDHARDWAREINPUT
+		private struct MOUSE_HARDWARE_INPUT
 		{
-			[ FieldOffset( 0 ) ] public MOUSEINPUT _mouse;
+			[ FieldOffset( 0 ) ] public MOUSE_INPUT _mouse;
 		}
 
-		private struct MOUSEINPUT
+		private struct MOUSE_INPUT
 		{
-			public int _x;
-			public int _y;
+			public int _dx;
+			public int _dy;
 			public uint _mouse_data;
 			public uint _flags;
 			public uint _time;
@@ -111,7 +112,7 @@ namespace ZClicker
 
 		#region [ WIN CONSTS ]
 
-		private const int
+		private const int _INPUT_MOUSE = 0,
 			_MOUSE_LEFT_DOWN = 1 << 1,
 			_MOUSE_LEFT_UP = 1 << 2,
 			_MOUSE_RIGHT_DOWN = 1 << 3,
@@ -121,20 +122,22 @@ namespace ZClicker
 
 		private static void useMouse( ZMOUSE_DATA data )
 		{
-			Cursor.Position = data._location;
-
 			if ( data._state != ZMOUSE_STATE.NONE )
 			{
-				var mouse_input = new INPUT { _type = 0 };
+				var mouse_input = new INPUT { _type = _INPUT_MOUSE };
 				mouse_input._data._mouse._flags = ( uint ) ( ( ( data._button == MouseButtons.Left ) ? _MOUSE_LEFT_DOWN : _MOUSE_RIGHT_DOWN ) << ( ( data._state == ZMOUSE_STATE.UP ) ? 1 : 0 ) );
 
-				SendInput( 1, new[] { mouse_input }, Marshal.SizeOf( typeof( INPUT ) ) );
+				var inputs = new[] { mouse_input };
+
+				SendInput( ( uint ) inputs.Length, inputs, Marshal.SizeOf( typeof( INPUT ) ) );
 			}
 		}
 
 		public static Task delayedUse( ZMOUSE_DATA data, int delay_ms = -1 ) =>
 			Task.Run( async () =>
 			{
+				Cursor.Position = data._location;
+
 				await Task.Delay( ( ( delay_ms == -1 ) ? data.deltaTime : delay_ms ) );
 
 				useMouse( data );

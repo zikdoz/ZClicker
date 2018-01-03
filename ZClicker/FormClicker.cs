@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -21,8 +22,8 @@ namespace ZClicker
 
 		#region [ CONTROLS VARS ]
 
-		private int _speed_mod;
-		private bool _is_la2_fixed, _is_playing, _repeat_play = true;
+		private int _speed_mod = 150;
+		private bool _is_la2_fixed = true, _is_playing, _repeat_play = true;
 
 		#endregion
 
@@ -50,6 +51,11 @@ namespace ZClicker
 
 			#region [ CONTROLS VARS ]
 
+			numericUD_speed.Value = _speed_mod;
+
+			checkbox_l2_drag_fix.Checked = _is_la2_fixed;
+			checkbox_repeat.Checked = _repeat_play;
+
 			numericUD_speed.ValueChanged += ( sender, args ) => { _speed_mod = ( int ) numericUD_speed.Value; };
 
 			checkbox_l2_drag_fix.CheckedChanged += ( sender, args ) => { checkboxSetVar( sender as CheckBox, out _is_la2_fixed ); };
@@ -67,7 +73,7 @@ namespace ZClicker
 					if ( !_stopwatch_delta_time.IsRunning )
 						_stopwatch_delta_time.Start();
 
-					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location, ( int ) _stopwatch_delta_time.ElapsedMilliseconds ) );
+					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, Cursor.Position, ( int ) _stopwatch_delta_time.ElapsedMilliseconds ) );
 
 					_stopwatch_delta_time.Restart();
 				}
@@ -81,30 +87,37 @@ namespace ZClicker
 			{
 				do
 				{
-					for ( int i = 0, end = _zmouse_data.Count; !args.Cancel && ( i < end ); ++i )
+					for ( int i = 0, end = _zmouse_data.Count; !( args.Cancel = background_worker.CancellationPending ) && ( i < end ); ++i )
 					{
-						args.Cancel = background_worker.CancellationPending;
-
 						Task current_job;
 
-						if ( _is_la2_fixed )
+						if ( _is_la2_fixed && ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP ) )
 						{
-							if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
-							{
-								current_job = ZClicker.delayedUse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ).speedUp( _speed_mod ) );
-								await current_job;
-							}
+							var temp = new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location );
+
+							current_job = ZClicker.delayedUse( temp );
+							await current_job;
 						}
+
+						Console.WriteLine( $@"[ {i} ]: {_zmouse_data[ i ].speedUp( _speed_mod )}" );
 
 						current_job = ZClicker.delayedUse( _zmouse_data[ i ].speedUp( _speed_mod ) );
 						await current_job;
+
+						if ( _is_la2_fixed && ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP ) )
+						{
+							var temp = new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i ]._location );
+
+							current_job = ZClicker.delayedUse( temp );
+							await current_job;
+						}
 					}
-				} while ( _repeat_play );
+				} while ( _repeat_play && !args.Cancel );
 
 				Invoke( new Action( () =>
 				{
-					button_run.Enabled = true;
-					_is_playing = false;
+					button_run.Enabled = button_record.Enabled = true;
+					button_stop.Enabled = _is_playing = false;
 				} ) );
 			};
 
@@ -124,13 +137,11 @@ namespace ZClicker
 
 			button_stop.Click += ( sender, args ) =>
 			{
-				if ( !_is_playing )
-				{
-					_stopwatch_delta_time?.Stop();
-					_mouse_activity_hook?.stop();
-				}
-				else
+				if ( _is_playing )
 					background_worker.CancelAsync();
+
+				_stopwatch_delta_time?.Stop();
+				_mouse_activity_hook?.stop();
 
 				button_record.Enabled = button_run.Enabled = true;
 				button_stop.Enabled = false;
@@ -142,11 +153,6 @@ namespace ZClicker
 				button_run.Enabled = button_record.Enabled = false;
 
 				background_worker?.RunWorkerAsync();
-
-#if DEBUG
-				foreach ( var data in _zmouse_data )
-					Console.WriteLine( data.speedUp( _speed_mod ) );
-#endif
 			};
 
 			#endregion
@@ -185,12 +191,12 @@ namespace ZClicker
 
 					case ZHOTKEYS.SPEED_UP:
 
-						numericUD_speed.Value += numericUD_speed.Increment;
+						numericUD_speed.Value = Math.Min( numericUD_speed.Maximum, numericUD_speed.Value + numericUD_speed.Increment );
 						break;
 
 					case ZHOTKEYS.SPEED_DOWN:
 
-						numericUD_speed.Value -= numericUD_speed.Increment;
+						numericUD_speed.Value = Math.Max( numericUD_speed.Minimum, numericUD_speed.Value - numericUD_speed.Increment );
 						break;
 
 					case ZHOTKEYS.REPEAT:
