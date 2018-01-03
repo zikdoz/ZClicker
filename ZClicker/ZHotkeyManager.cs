@@ -9,6 +9,9 @@ namespace ZClicker
 		STOP = 1337 + 1,
 		RUN = 1337 + 2,
 		EXIT = 1337 + 3,
+		SPEED_UP = 1337 + 4,
+		SPEED_DOWN = 1337 + 5,
+		REPEAT = 1337 + 6,
 	}
 
 	public static class ZHotkeyManager

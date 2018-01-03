@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 // TODO: embed font
+// TODO: tooltips to show hotkeys of each control: record / stop / run, speed up/down, repeat
+// TODO: maybe, allow user edit hotkeys
 namespace ZClicker
 {
 	public partial class form_clicker : Form
@@ -20,7 +22,7 @@ namespace ZClicker
 		#region [ CONTROLS VARS ]
 
 		private int _speed_mod;
-		private bool _is_la2_fixed;
+		private bool _is_la2_fixed, _is_playing, _repeat_play = true;
 
 		#endregion
 
@@ -40,12 +42,18 @@ namespace ZClicker
 			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.RUN, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Z );
 			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.EXIT, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.X );
 
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.SPEED_UP, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Up );
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.SPEED_DOWN, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Down );
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.REPEAT, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.R );
+
 			#endregion
 
 			#region [ CONTROLS VARS ]
 
 			numericUD_speed.ValueChanged += ( sender, args ) => { _speed_mod = ( int ) numericUD_speed.Value; };
-			checkbox_l2_drag_fix.CheckedChanged += ( sender, args ) => { _is_la2_fixed = checkbox_l2_drag_fix.Checked; };
+
+			checkbox_l2_drag_fix.CheckedChanged += ( sender, args ) => { checkboxSetVar( sender as CheckBox, out _is_la2_fixed ); };
+			checkbox_repeat.CheckedChanged += ( sender, args ) => { checkboxSetVar( sender as CheckBox, out _repeat_play ); };
 
 			#endregion
 
@@ -67,14 +75,16 @@ namespace ZClicker
 
 			#endregion
 
-			#region [ (TEST) PLAY ]
+			#region [ PLAY ]
 
 			background_worker.DoWork += async ( sender, args ) =>
 			{
-				for ( int i = 0, end = _zmouse_data.Count; i < end; ++i )
+				do
 				{
-					if ( !( args.Cancel = background_worker.CancellationPending ) )
+					for ( int i = 0, end = _zmouse_data.Count; !args.Cancel && ( i < end ); ++i )
 					{
+						args.Cancel = background_worker.CancellationPending;
+
 						Task current_job;
 
 						if ( _is_la2_fixed )
@@ -89,11 +99,18 @@ namespace ZClicker
 						current_job = ZClicker.delayedUse( _zmouse_data[ i ].speedUp( _speed_mod ) );
 						await current_job;
 					}
-				}
+				} while ( _repeat_play );
+
+				Invoke( new Action( () =>
+				{
+					button_run.Enabled = true;
+					_is_playing = false;
+				} ) );
 			};
-			background_worker.RunWorkerCompleted += ( sender, args ) => { button_run.Enabled = true; };
 
 			#endregion
+
+			#region [ BUTTONS CLICK ]
 
 			button_record.Click += ( sender, args ) =>
 			{
@@ -107,8 +124,13 @@ namespace ZClicker
 
 			button_stop.Click += ( sender, args ) =>
 			{
-				_stopwatch_delta_time?.Stop();
-				_mouse_activity_hook?.stop();
+				if ( !_is_playing )
+				{
+					_stopwatch_delta_time?.Stop();
+					_mouse_activity_hook?.stop();
+				}
+				else
+					background_worker.CancelAsync();
 
 				button_record.Enabled = button_run.Enabled = true;
 				button_stop.Enabled = false;
@@ -116,15 +138,18 @@ namespace ZClicker
 
 			button_run.Click += ( sender, args ) =>
 			{
+				button_stop.Enabled = _is_playing = true;
+				button_run.Enabled = button_record.Enabled = false;
+
 				background_worker?.RunWorkerAsync();
 
 #if DEBUG
 				foreach ( var data in _zmouse_data )
 					Console.WriteLine( data.speedUp( _speed_mod ) );
 #endif
-
-				button_run.Enabled = false;
 			};
+
+			#endregion
 		}
 
 		#region [ HANDLE GLOBAL HOTKEYS ]
@@ -152,10 +177,25 @@ namespace ZClicker
 
 					case ZHOTKEYS.EXIT:
 
-						if ( background_worker.IsBusy )
+						if ( _is_playing )
 							background_worker.CancelAsync();
 
 						Environment.Exit( 0 );
+						break;
+
+					case ZHOTKEYS.SPEED_UP:
+
+						numericUD_speed.Value += numericUD_speed.Increment;
+						break;
+
+					case ZHOTKEYS.SPEED_DOWN:
+
+						numericUD_speed.Value -= numericUD_speed.Increment;
+						break;
+
+					case ZHOTKEYS.REPEAT:
+
+						checkbox_repeat.Checked = !checkbox_repeat.Checked;
 						break;
 				}
 			}
@@ -164,5 +204,8 @@ namespace ZClicker
 		}
 
 		#endregion
+
+		private static void checkboxSetVar( CheckBox sender, out bool var ) =>
+			var = sender.Checked;
 	}
 }

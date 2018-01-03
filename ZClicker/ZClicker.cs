@@ -52,7 +52,7 @@ namespace ZClicker
 
 		public Point _location;
 
-		private const int _MIN_DELTA_TIME = 50; // in ms
+		private const int _MIN_DELTA_TIME = 10; // in ms
 
 		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location, int delta_time = _MIN_DELTA_TIME )
 		{

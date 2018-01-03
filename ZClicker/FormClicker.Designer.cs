@@ -36,6 +36,7 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.checkbox_l2_drag_fix = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
+			this.checkbox_repeat = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.numericUD_speed)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -99,7 +100,7 @@
 			this.numericUD_speed.Size = new System.Drawing.Size(86, 36);
 			this.numericUD_speed.TabIndex = 3;
 			this.numericUD_speed.Value = new decimal(new int[] {
-            300,
+            150,
             0,
             0,
             0});
@@ -120,10 +121,10 @@
 			this.checkbox_l2_drag_fix.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.checkbox_l2_drag_fix.AutoSize = true;
 			this.checkbox_l2_drag_fix.Font = new System.Drawing.Font("Dina ttf 10px", 19.69811F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.checkbox_l2_drag_fix.Location = new System.Drawing.Point(348, 72);
+			this.checkbox_l2_drag_fix.Location = new System.Drawing.Point(336, 70);
 			this.checkbox_l2_drag_fix.Name = "checkbox_l2_drag_fix";
 			this.checkbox_l2_drag_fix.Size = new System.Drawing.Size(212, 34);
-			this.checkbox_l2_drag_fix.TabIndex = 5;
+			this.checkbox_l2_drag_fix.TabIndex = 4;
 			this.checkbox_l2_drag_fix.Text = "La2 drag fix";
 			this.checkbox_l2_drag_fix.UseVisualStyleBackColor = true;
 			// 
@@ -138,11 +139,26 @@
 			this.label2.TabIndex = 4;
 			this.label2.Text = "%";
 			// 
+			// checkbox_repeat
+			// 
+			this.checkbox_repeat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkbox_repeat.AutoSize = true;
+			this.checkbox_repeat.Checked = true;
+			this.checkbox_repeat.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkbox_repeat.Font = new System.Drawing.Font("Dina ttf 10px", 19.69811F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.checkbox_repeat.Location = new System.Drawing.Point(336, 122);
+			this.checkbox_repeat.Name = "checkbox_repeat";
+			this.checkbox_repeat.Size = new System.Drawing.Size(122, 34);
+			this.checkbox_repeat.TabIndex = 5;
+			this.checkbox_repeat.Text = "Repeat";
+			this.checkbox_repeat.UseVisualStyleBackColor = true;
+			// 
 			// form_clicker
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(572, 171);
+			this.Controls.Add(this.checkbox_repeat);
 			this.Controls.Add(this.checkbox_l2_drag_fix);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
@@ -151,7 +167,7 @@
 			this.Controls.Add(this.button_stop);
 			this.Controls.Add(this.button_record);
 			this.Name = "form_clicker";
-			this.Text = "Clicker";
+			this.Text = "ZClicker";
 			((System.ComponentModel.ISupportInitialize)(this.numericUD_speed)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
@@ -168,5 +184,6 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.CheckBox checkbox_l2_drag_fix;
 		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.CheckBox checkbox_repeat;
 	}
 }
