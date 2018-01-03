@@ -5,6 +5,15 @@ using System.Windows.Forms;
 
 namespace ZClicker
 {
+	public static class ZPointExtension
+	{
+		public static Point addOffset( this Point point, Point offset ) =>
+			new Point( point.X + offset.X, point.Y + offset.Y );
+
+		public static Point addOffset( this Point point, int offset_x, int offset_y ) =>
+			new Point( point.X + offset_x, point.Y + offset_y );
+	}
+
 	public enum ZMOUSE_STATE
 	{
 		UP = -1,
@@ -14,7 +23,7 @@ namespace ZClicker
 
 	public struct ZMOUSE_DATA
 	{
-		//TODO: add delta_time: time since last mouse
+		//TODO: add delta_time: time since last mouse activity
 		public MouseButtons _button;
 
 		public ZMOUSE_STATE _state;
@@ -87,7 +96,7 @@ namespace ZClicker
 			{
 				var mouse_input = new INPUT { _type = 0 };
 				mouse_input._data._mouse._flags = ( uint ) ( ( ( data._button == MouseButtons.Left ) ? _MOUSE_LEFT_DOWN : _MOUSE_RIGHT_DOWN ) << ( ( data._state == ZMOUSE_STATE.UP ) ? 1 : 0 ) );
-				
+
 				SendInput( 1, new[] { mouse_input }, Marshal.SizeOf( typeof( INPUT ) ) );
 			}
 		}

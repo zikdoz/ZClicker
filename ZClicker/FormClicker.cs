@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -29,18 +28,22 @@ namespace ZClicker
 			{
 				if ( args.Clicks != 0 )
 					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location ) );
-
-				Console.WriteLine( $@"Button = {args.Button} | State = {( ZMOUSE_STATE ) args.Clicks} | Location = [ {args.X}, {args.Y} ]" );
 			};
 
 			background_worker.DoWork += ( sender, args ) =>
 			{
-				foreach ( var data in _zmouse_data )
+				for ( int i = 0, end = _zmouse_data.Count; i < end; ++i )
 				{
 					if ( !( args.Cancel = background_worker.CancellationPending ) )
 					{
-						ZClicker.useMouse( data );
-						Thread.Sleep( 5 );
+						// TODO: make as option
+//						// TODO: la2 fix goes below
+//						if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
+//							ZClicker.useMouse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ) );
+//						// TODO: such fix
+
+						Thread.Sleep( 100 );
+						ZClicker.useMouse( _zmouse_data[ i ] );
 					}
 				}
 			};
@@ -97,9 +100,6 @@ namespace ZClicker
 					case ZHotkeyManager._ZRECORD_RUN:
 
 						button_run.PerformClick();
-						break;
-
-					default:
 						break;
 				}
 			}
