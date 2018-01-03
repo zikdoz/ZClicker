@@ -4,13 +4,25 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+// TODO: embed font
 namespace ZClicker
 {
 	public partial class form_clicker : Form
 	{
+		#region [ DATA ]
+
 		private ZMouseHook _mouse_activity_hook;
 		private List< ZMOUSE_DATA > _zmouse_data;
 		private Stopwatch _stopwatch_delta_time;
+
+		#endregion
+
+		#region [ CONTROLS VARS ]
+
+		private int _speed_mod;
+		private bool _is_la2_fixed;
+
+		#endregion
 
 		public form_clicker()
 		{
@@ -30,6 +42,13 @@ namespace ZClicker
 
 			#endregion
 
+			#region [ CONTROLS VARS ]
+
+			numericUD_speed.ValueChanged += ( sender, args ) => { _speed_mod = ( int ) numericUD_speed.Value; };
+			checkbox_l2_drag_fix.CheckedChanged += ( sender, args ) => { _is_la2_fixed = checkbox_l2_drag_fix.Checked; };
+
+			#endregion
+
 			#region [ RECORD ]
 
 			_mouse_activity_hook = new ZMouseHook( false );
@@ -40,7 +59,7 @@ namespace ZClicker
 					if ( !_stopwatch_delta_time.IsRunning )
 						_stopwatch_delta_time.Start();
 
-					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location, Math.Max( ( int ) _stopwatch_delta_time.ElapsedMilliseconds, ZMOUSE_DATA._MIN_DELTA_TIME ) ) );
+					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location, ( int ) _stopwatch_delta_time.ElapsedMilliseconds ) );
 
 					_stopwatch_delta_time.Restart();
 				}
@@ -58,15 +77,16 @@ namespace ZClicker
 					{
 						Task current_job;
 
-//						// TODO: la2 fix - enable optionally
-						if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
+						if ( _is_la2_fixed )
 						{
-							current_job = ZClicker.delayedUse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ) );
-							await current_job;
+							if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
+							{
+								current_job = ZClicker.delayedUse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ).speedUp( _speed_mod ) );
+								await current_job;
+							}
 						}
 
-						// TODO: record delay between actions & customize it
-						current_job = ZClicker.delayedUse( _zmouse_data[ i ] );
+						current_job = ZClicker.delayedUse( _zmouse_data[ i ].speedUp( _speed_mod ) );
 						await current_job;
 					}
 				}
@@ -100,7 +120,7 @@ namespace ZClicker
 
 #if DEBUG
 				foreach ( var data in _zmouse_data )
-					Console.WriteLine( data );
+					Console.WriteLine( data.speedUp( _speed_mod ) );
 #endif
 
 				button_run.Enabled = false;

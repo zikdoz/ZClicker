@@ -9,13 +9,20 @@ namespace ZClicker
 {
 	#region [ HELPRERS ]
 
-	public static class ZPointExtension
+	public static class ZExtensions
 	{
 		public static Point addOffset( this Point point, Point offset ) =>
 			new Point( point.X + offset.X, point.Y + offset.Y );
 
 		public static Point addOffset( this Point point, int offset_x, int offset_y ) =>
 			new Point( point.X + offset_x, point.Y + offset_y );
+
+		public static ZMOUSE_DATA speedUp( this ZMOUSE_DATA data, int speed )
+		{
+			data.deltaTime = ( int ) ( data.deltaTime / ( speed / 100.0 ) );
+
+			return data;
+		}
 	}
 
 	#endregion
@@ -31,7 +38,13 @@ namespace ZClicker
 
 	public struct ZMOUSE_DATA
 	{
-		public readonly int _delta_time;
+		private int _delta_time;
+
+		public int deltaTime
+		{
+			get => _delta_time;
+			set => _delta_time = Math.Max( _MIN_DELTA_TIME, value );
+		}
 
 		public readonly MouseButtons _button;
 
@@ -39,14 +52,14 @@ namespace ZClicker
 
 		public Point _location;
 
-		public const int _MIN_DELTA_TIME = 50; // in ms
+		private const int _MIN_DELTA_TIME = 50; // in ms
 
 		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location, int delta_time = _MIN_DELTA_TIME )
 		{
 			_button = button;
 			_state = state;
 			_location = location;
-			_delta_time = delta_time;
+			_delta_time = Math.Max( _MIN_DELTA_TIME, delta_time );
 		}
 
 		public override string ToString() =>
@@ -119,10 +132,10 @@ namespace ZClicker
 			}
 		}
 
-		public static Task delayedUse( ZMOUSE_DATA data ) =>
+		public static Task delayedUse( ZMOUSE_DATA data, int delay_ms = -1 ) =>
 			Task.Run( async () =>
 			{
-				await Task.Delay( data._delta_time );
+				await Task.Delay( ( ( delay_ms == -1 ) ? data.deltaTime : delay_ms ) );
 
 				useMouse( data );
 			} );
