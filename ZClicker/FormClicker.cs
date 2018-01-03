@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ZClicker
@@ -9,6 +10,7 @@ namespace ZClicker
 	{
 		private ZMouseHook _mouse_activity_hook;
 		private List< ZMOUSE_DATA > _zmouse_data;
+		private Stopwatch _stopwatch_delta_time;
 
 		public form_clicker()
 		{
@@ -19,7 +21,7 @@ namespace ZClicker
 
 		private void init()
 		{
-			#region [ REGISTER HOTKEYS ]
+			#region [ REGISTER GLOBAL HOTKEYS ]
 
 			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.START, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Q );
 			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.STOP, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.A );
@@ -28,37 +30,56 @@ namespace ZClicker
 
 			#endregion
 
+			#region [ RECORD ]
+
 			_mouse_activity_hook = new ZMouseHook( false );
 			_mouse_activity_hook.OnMouseActivity += ( sender, args ) =>
 			{
 				if ( args.Clicks != 0 )
-					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location ) );
+				{
+					if ( !_stopwatch_delta_time.IsRunning )
+						_stopwatch_delta_time.Start();
+
+					_zmouse_data.Add( new ZMOUSE_DATA( args.Button, ( ZMOUSE_STATE ) args.Clicks, args.Location, Math.Max( ( int ) _stopwatch_delta_time.ElapsedMilliseconds, ZMOUSE_DATA._MIN_DELTA_TIME ) ) );
+
+					_stopwatch_delta_time.Restart();
+				}
 			};
 
-			background_worker.DoWork += ( sender, args ) =>
+			#endregion
+
+			#region [ (TEST) PLAY ]
+
+			background_worker.DoWork += async ( sender, args ) =>
 			{
 				for ( int i = 0, end = _zmouse_data.Count; i < end; ++i )
 				{
 					if ( !( args.Cancel = background_worker.CancellationPending ) )
 					{
-						// TODO: enable fix optionally
-//						// TODO: la2 fix goes below
-//						if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
-//							ZClicker.useMouse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ) );
-//						// TODO: such fix
+						Task current_job;
 
-						// TODO: delay between actions - option
-						Thread.Sleep( 50 );
-						ZClicker.useMouse( _zmouse_data[ i ] );
+//						// TODO: la2 fix - enable optionally
+						if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
+						{
+							current_job = ZClicker.delayedUse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ) );
+							await current_job;
+						}
+
+						// TODO: record delay between actions & customize it
+						current_job = ZClicker.delayedUse( _zmouse_data[ i ] );
+						await current_job;
 					}
 				}
 			};
 			background_worker.RunWorkerCompleted += ( sender, args ) => { button_run.Enabled = true; };
 
+			#endregion
+
 			button_record.Click += ( sender, args ) =>
 			{
+				_stopwatch_delta_time = new Stopwatch();
 				_zmouse_data = new List< ZMOUSE_DATA >();
-				_mouse_activity_hook.start();
+				_mouse_activity_hook?.start();
 
 				button_stop.Enabled = true;
 				button_record.Enabled = button_run.Enabled = false;
@@ -66,7 +87,8 @@ namespace ZClicker
 
 			button_stop.Click += ( sender, args ) =>
 			{
-				_mouse_activity_hook.stop();
+				_stopwatch_delta_time?.Stop();
+				_mouse_activity_hook?.stop();
 
 				button_record.Enabled = button_run.Enabled = true;
 				button_stop.Enabled = false;
@@ -74,11 +96,18 @@ namespace ZClicker
 
 			button_run.Click += ( sender, args ) =>
 			{
-				background_worker.RunWorkerAsync();
+				background_worker?.RunWorkerAsync();
+
+#if DEBUG
+				foreach ( var data in _zmouse_data )
+					Console.WriteLine( data );
+#endif
 
 				button_run.Enabled = false;
 			};
 		}
+
+		#region [ HANDLE GLOBAL HOTKEYS ]
 
 		protected override void WndProc( ref Message m )
 		{
@@ -113,5 +142,7 @@ namespace ZClicker
 
 			base.WndProc( ref m );
 		}
+
+		#endregion
 	}
 }

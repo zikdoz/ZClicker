@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
+// TODO: maybe handle mouse wheel?
 namespace ZClicker
 {
+	#region [ HELPRERS ]
+
 	public static class ZPointExtension
 	{
 		public static Point addOffset( this Point point, Point offset ) =>
@@ -13,6 +17,10 @@ namespace ZClicker
 		public static Point addOffset( this Point point, int offset_x, int offset_y ) =>
 			new Point( point.X + offset_x, point.Y + offset_y );
 	}
+
+	#endregion
+
+	#region [ STRUCT / ENUMS ]
 
 	public enum ZMOUSE_STATE
 	{
@@ -23,22 +31,29 @@ namespace ZClicker
 
 	public struct ZMOUSE_DATA
 	{
-		public float _delta_time;
+		public readonly int _delta_time;
 
-		public MouseButtons _button;
+		public readonly MouseButtons _button;
 
-		public ZMOUSE_STATE _state;
+		public readonly ZMOUSE_STATE _state;
 
 		public Point _location;
 
-		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location, float delta_time = 0 )
+		public const int _MIN_DELTA_TIME = 50; // in ms
+
+		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location, int delta_time = _MIN_DELTA_TIME )
 		{
 			_button = button;
 			_state = state;
 			_location = location;
 			_delta_time = delta_time;
 		}
+
+		public override string ToString() =>
+			$@"Button = [ {_button} ] | State = [ {_state} ] | Delta_time = [ {_delta_time} ] | Location = [ {_location.X}, {_location.Y} ]";
 	}
+
+	#endregion
 
 	public static class ZClicker
 	{
@@ -91,7 +106,7 @@ namespace ZClicker
 
 		#endregion
 
-		public static void useMouse( ZMOUSE_DATA data )
+		private static void useMouse( ZMOUSE_DATA data )
 		{
 			Cursor.Position = data._location;
 
@@ -103,5 +118,13 @@ namespace ZClicker
 				SendInput( 1, new[] { mouse_input }, Marshal.SizeOf( typeof( INPUT ) ) );
 			}
 		}
+
+		public static Task delayedUse( ZMOUSE_DATA data ) =>
+			Task.Run( async () =>
+			{
+				await Task.Delay( data._delta_time );
+
+				useMouse( data );
+			} );
 	}
 }
