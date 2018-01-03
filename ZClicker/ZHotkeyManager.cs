@@ -3,6 +3,14 @@ using System.Runtime.InteropServices;
 
 namespace ZClicker
 {
+	public enum ZHOTKEYS
+	{
+		START = 1337 + 0,
+		STOP = 1337 + 1,
+		RUN = 1337 + 2,
+		EXIT = 1337 + 3,
+	}
+
 	public static class ZHotkeyManager
 	{
 		#region [ WIN-LIB IMPORTS ]
@@ -23,15 +31,6 @@ namespace ZClicker
 			KMOD_CTRL = 1 << 1,
 			KMOD_SHIFT = 1 << 2,
 			KMOD_WIN = 1 << 3;
-
-		#endregion
-
-		#region [ HOTKEYS ID ]
-
-		public const int
-			_ZRECORD_START = 1337 + 0,
-			_ZRECORD_STOP = 1337 + 1,
-			_ZRECORD_RUN = 1337 + 2;
 
 		#endregion
 	}

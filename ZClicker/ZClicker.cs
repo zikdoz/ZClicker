@@ -23,17 +23,20 @@ namespace ZClicker
 
 	public struct ZMOUSE_DATA
 	{
-		//TODO: add delta_time: time since last mouse activity
+		public float _delta_time;
+
 		public MouseButtons _button;
 
 		public ZMOUSE_STATE _state;
+
 		public Point _location;
 
-		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location )
+		public ZMOUSE_DATA( MouseButtons button, ZMOUSE_STATE state, Point location, float delta_time = 0 )
 		{
 			_button = button;
 			_state = state;
 			_location = location;
+			_delta_time = delta_time;
 		}
 	}
 

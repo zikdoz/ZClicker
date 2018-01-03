@@ -19,9 +19,14 @@ namespace ZClicker
 
 		private void init()
 		{
-			ZHotkeyManager.RegisterHotKey( Handle, ZHotkeyManager._ZRECORD_START, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Q );
-			ZHotkeyManager.RegisterHotKey( Handle, ZHotkeyManager._ZRECORD_STOP, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.A );
-			ZHotkeyManager.RegisterHotKey( Handle, ZHotkeyManager._ZRECORD_RUN, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Z );
+			#region [ REGISTER HOTKEYS ]
+
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.START, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Q );
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.STOP, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.A );
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.RUN, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Z );
+			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.EXIT, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.X );
+
+			#endregion
 
 			_mouse_activity_hook = new ZMouseHook( false );
 			_mouse_activity_hook.OnMouseActivity += ( sender, args ) =>
@@ -36,13 +41,14 @@ namespace ZClicker
 				{
 					if ( !( args.Cancel = background_worker.CancellationPending ) )
 					{
-						// TODO: make as option
+						// TODO: enable fix optionally
 //						// TODO: la2 fix goes below
 //						if ( _zmouse_data[ i ]._state == ZMOUSE_STATE.UP )
 //							ZClicker.useMouse( new ZMOUSE_DATA( MouseButtons.None, ZMOUSE_STATE.NONE, _zmouse_data[ i - 1 ]._location.addOffset( -1, -1 ) ) );
 //						// TODO: such fix
 
-						Thread.Sleep( 100 );
+						// TODO: delay between actions - option
+						Thread.Sleep( 50 );
 						ZClicker.useMouse( _zmouse_data[ i ] );
 					}
 				}
@@ -78,28 +84,29 @@ namespace ZClicker
 		{
 			if ( m.Msg == ZHotkeyManager._WM_HOTKEY )
 			{
-				switch ( m.WParam.ToInt32() )
+				switch ( ( ZHOTKEYS ) m.WParam.ToInt32() )
 				{
-					case ZHotkeyManager._ZRECORD_START:
+					case ZHOTKEYS.START:
 
 						button_record.PerformClick();
 						break;
 
-					case ZHotkeyManager._ZRECORD_STOP:
+					case ZHOTKEYS.STOP:
 
-						if ( background_worker.IsBusy )
-						{
-							background_worker.CancelAsync();
-
-							Environment.Exit( 0 );
-						}
-						else
-							button_stop.PerformClick();
+						button_stop.PerformClick();
 						break;
 
-					case ZHotkeyManager._ZRECORD_RUN:
+					case ZHOTKEYS.RUN:
 
 						button_run.PerformClick();
+						break;
+
+					case ZHOTKEYS.EXIT:
+
+						if ( background_worker.IsBusy )
+							background_worker.CancelAsync();
+
+						Environment.Exit( 0 );
 						break;
 				}
 			}
