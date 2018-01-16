@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
+using System.Drawing;
+using System.Drawing.Text;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// TODO: embed font
 // TODO: tooltips to show hotkeys of each control: record / stop / run, speed up/down, repeat
+// TODO: maybe, allow user to set font/size/etc
 // TODO: maybe, allow user edit hotkeys
 namespace ZClicker
 {
@@ -17,6 +19,8 @@ namespace ZClicker
 		private ZMouseHook _mouse_activity_hook;
 		private List< ZMOUSE_DATA > _zmouse_data;
 		private Stopwatch _stopwatch_delta_time;
+
+		private readonly PrivateFontCollection _font_collection = new PrivateFontCollection();
 
 		#endregion
 
@@ -36,6 +40,16 @@ namespace ZClicker
 
 		private void init()
 		{
+			#region [ EMBED FONTS ]
+
+			embedFont( Properties.Resources.dina10px );
+
+			#endregion
+
+			var embed_font_family = _font_collection.Families[ 0 ];
+			if ( embed_font_family.IsStyleAvailable( FontStyle.Regular ) )
+				updateControlsFont( new Font( embed_font_family, 20, FontStyle.Regular, GraphicsUnit.Point ) );
+
 			#region [ REGISTER GLOBAL HOTKEYS ]
 
 			ZHotkeyManager.RegisterHotKey( Handle, ( int ) ZHOTKEYS.START, ZHotkeyManager.KMOD_SHIFT, ( int ) Keys.Q );
@@ -99,7 +113,7 @@ namespace ZClicker
 							await current_job;
 						}
 
-						Console.WriteLine( $@"[ {i} ]: {_zmouse_data[ i ].speedUp( _speed_mod )}" );
+//						Console.WriteLine( $@"[ {i} ]: {_zmouse_data[ i ].speedUp( _speed_mod )}" );
 
 						current_job = ZClicker.delayedUse( _zmouse_data[ i ].speedUp( _speed_mod ) );
 						await current_job;
@@ -160,56 +174,77 @@ namespace ZClicker
 
 		#region [ HANDLE GLOBAL HOTKEYS ]
 
-		protected override void WndProc( ref Message m )
+		protected override void WndProc( ref Message message )
 		{
-			if ( m.Msg == ZHotkeyManager._WM_HOTKEY )
+			base.WndProc( ref message );
+
+			switch ( message.Msg )
 			{
-				switch ( ( ZHOTKEYS ) m.WParam.ToInt32() )
-				{
-					case ZHOTKEYS.START:
+				case ZHotkeyManager._WM_HOTKEY:
 
-						button_record.PerformClick();
-						break;
+					switch ( ( ZHOTKEYS ) message.WParam.ToInt32() )
+					{
+						case ZHOTKEYS.START:
 
-					case ZHOTKEYS.STOP:
+							button_record.PerformClick();
+							break;
 
-						button_stop.PerformClick();
-						break;
+						case ZHOTKEYS.STOP:
 
-					case ZHOTKEYS.RUN:
+							button_stop.PerformClick();
+							break;
 
-						button_run.PerformClick();
-						break;
+						case ZHOTKEYS.RUN:
 
-					case ZHOTKEYS.EXIT:
+							button_run.PerformClick();
+							break;
 
-						if ( _is_playing )
-							background_worker.CancelAsync();
+						case ZHOTKEYS.EXIT:
 
-						Environment.Exit( 0 );
-						break;
+							if ( _is_playing )
+								background_worker.CancelAsync();
 
-					case ZHOTKEYS.SPEED_UP:
+							Environment.Exit( 0 );
+							break;
 
-						numericUD_speed.Value = Math.Min( numericUD_speed.Maximum, numericUD_speed.Value + numericUD_speed.Increment );
-						break;
+						case ZHOTKEYS.SPEED_UP:
 
-					case ZHOTKEYS.SPEED_DOWN:
+							numericUD_speed.Value = Math.Min( numericUD_speed.Maximum, numericUD_speed.Value + numericUD_speed.Increment );
+							break;
 
-						numericUD_speed.Value = Math.Max( numericUD_speed.Minimum, numericUD_speed.Value - numericUD_speed.Increment );
-						break;
+						case ZHOTKEYS.SPEED_DOWN:
 
-					case ZHOTKEYS.REPEAT:
+							numericUD_speed.Value = Math.Max( numericUD_speed.Minimum, numericUD_speed.Value - numericUD_speed.Increment );
+							break;
 
-						checkbox_repeat.Checked = !checkbox_repeat.Checked;
-						break;
-				}
+						case ZHOTKEYS.REPEAT:
+
+							checkbox_repeat.Checked = !checkbox_repeat.Checked;
+							break;
+					}
+					break;
 			}
-
-			base.WndProc( ref m );
 		}
 
 		#endregion
+
+		private void embedFont( byte[] font )
+		{
+			var font_length = font.Length;
+			var buffer = font;
+
+			var data = Marshal.AllocCoTaskMem( font_length );
+			Marshal.Copy( buffer, 0, data, font_length );
+
+			_font_collection.AddMemoryFont( data, font_length );
+			Marshal.FreeCoTaskMem( data );
+		}
+
+		private void updateControlsFont( Font font ) =>
+			button_run.Font = button_stop.Font = button_record.Font =
+				label1.Font = label2.Font =
+					checkbox_repeat.Font = checkbox_l2_drag_fix.Font =
+						numericUD_speed.Font = font;
 
 		private static void checkboxSetVar( CheckBox sender, out bool var ) =>
 			var = sender.Checked;
