@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// TODO: tooltips to show hotkeys of each control: record / stop / run, speed up/down, repeat
-// TODO: maybe, allow user to set font/size/etc
-// TODO: maybe, allow user edit hotkeys
+// TODO: add tooltips to show hotkeys of each control: record / stop / run, speed up/down, repeat
+// TODO: allow user to set font/size/etc?
+// TODO: allow user edit hotkeys?
 namespace ZClicker
 {
 	public partial class form_clicker : Form
