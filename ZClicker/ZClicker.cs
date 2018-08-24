@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// TODO: maybe handle mouse wheel?
+// TODO: handle mouse wheel?
 namespace ZClicker
 {
 	#region [ HELPRERS ]
